@@ -1,0 +1,2 @@
+[console_scripts]
+filegit = filegit.cli.main:app
