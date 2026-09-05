@@ -20,3 +20,5 @@ is verifiable. "The PR is blocked" is only true when branch protection names tha
 as required — and saying so requires having checked.
 
 Where a capability is configured but not demonstrated, the documentation says so.
+
+Toda afirmacion de este repositorio esta verificada y bloquea el merge.
