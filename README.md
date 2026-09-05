@@ -86,7 +86,7 @@ In your GitHub Actions (or GitLab CI), you can run FileGit to strictly verify th
 2. The AI Agent provided a valid, cryptographically signed trace matching the active rules.
 
 ```bash
-# If the signature is invalid or the trace is missing, the CI fails and blocks the PR!
+# Exits non-zero if the signature is invalid or the trace is missing.
 filegit verify --require-trace
 ```
 
@@ -107,10 +107,63 @@ jobs:
           require-trace: 'true'
 ```
 
-> **Failing the check is not the same as blocking the merge.** A required
-> status check is *granted* in the repository's branch protection settings,
-> not declared in the workflow. Until someone with admin rights marks this
-> check as required, the job goes red and the merge button stays available.
+### Three steps to adopt it — and only two can be packaged
+
+**A required status check is not deployed. It is granted.** This is the single most
+important thing to understand before adopting FileGit, and no amount of tooling can
+change it.
+
+| | Step | Can it be packaged? |
+|---|---|---|
+| 1 | Add the workflow above to your repository (12 lines) | **Yes** — copy and paste |
+| 2 | Let it run once, so GitHub learns the check's name | **Yes** — automatic |
+| 3 | **Grant branch protection naming that check** | **No. Ever.** |
+
+Step 3 must be done by someone with admin rights, on their own repository, by hand.
+Either through *Settings → Branches → Add branch protection rule*, or in one command:
+
+```bash
+gh api -X PUT repos/OWNER/REPO/branches/main/protection --input - <<'JSON'
+{"required_status_checks":{"strict":false,"contexts":["build-and-test (3.12)"]},
+ "enforce_admins":true,"required_pull_request_reviews":null,"restrictions":null}
+JSON
+```
+
+**Order matters.** GitHub will not let you require a check it has never seen run. Step 2 is
+not a formality: it is a precondition of step 3, and skipping it is the usual mistake.
+
+`enforce_admins: true` includes *you*. Without it, the person who owns the repository can
+merge past a red check, which is the failure mode the tool exists to prevent.
+
+#### Proof, not a claim
+
+Both of these are real pull requests in this repository:
+
+- **[#1](https://github.com/accetproject-star/filegit-cli-demo/pull/1)** — three checks
+  green, merged normally.
+- **[#2](https://github.com/accetproject-star/filegit-cli-demo/pull/2)** — one deliberate
+  lint error. `gh pr view 2 --json mergeStateStatus` returns **`BLOCKED`**, and an actual
+  merge attempt is refused:
+
+  ```
+  X Pull request #2 is not mergeable: the base branch policy prohibits the merge.
+  ```
+
+  This repository also sets `enforce_admins: true`, which GitHub documents as applying the
+  same rules to administrators. That part is configured but not demonstrated here — proving
+  it would require merging a knowingly broken commit into `main`.
+
+Before branch protection was granted, a pull request with all three checks red still
+reported `mergeStateStatus: CLEAN` and could be merged. The workflow file did not change.
+**The permission did.**
+
+#### The limit, stated plainly
+
+Whoever grants the permission can revoke it. `enforce_admins: true` prevents merging on
+red; it does not prevent turning the protection off entirely. Branch protection is
+self-attested one level up — the audited party still holds the switch. Closing that gap
+needs a third party holding it instead, which is what transparency logs such as
+[Rekor](https://github.com/sigstore/rekor) exist for. FileGit does not do this today.
 
 ---
 
