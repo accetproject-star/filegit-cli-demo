@@ -1,0 +1,28 @@
+# FileGit verificándose a sí mismo.
+#
+# El gate necesita cero secretos: la clave pública viaja dentro del manifiesto
+# firmado, y el manifiesto está versionado. Lo único que nunca entra al
+# repositorio es la clave privada, que vive en la máquina de quien firma.
+#
+# Este workflow NO está en los checks requeridos de main todavía. Eso es
+# deliberado y es la misma lección que documenta el README: un required status
+# check se concede, no se declara. Primero corre, luego se decide si obliga.
+name: FileGit Gatekeeper
+
+on:
+  pull_request:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  verify-bundle:
+    name: Verificar el bundle firmado y la traza del agente
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verificar con la propia Action de este repositorio
+        uses: ./
+        with:
+          repo-path: '.'
+          require-trace: 'true'

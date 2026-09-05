@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "id": "filegit-bundle-20260905180710",
+  "owner": {
+    "did": "did:filegit:YKWrpTU18S9uqdtH",
+    "verification_method": {
+      "type": "Ed25519VerificationKey2020",
+      "public_key_multibase": "YKWrpTU18S9uqdtH+pRylB/WvV2AmD2lbZQuSIJSBU4="
+    }
+  },
+  "created_at": "2026-09-05T18:07:10.634637Z",
+  "valid_from": "2026-09-05T18:07:10.634637Z",
+  "valid_until": "2027-09-05T18:07:10.634637Z",
+  "status": "active",
+  "policies": [
+    {
+      "id": "policy-03-agent-traces",
+      "title": "03 Agent Traces",
+      "path": "policies/03-agent-traces.md",
+      "hash": "sha256:7c915253a13efbccfcce42636238fb11ac27cc2725fe5f06116c7f21dabfef29",
+      "level": "high"
+    },
+    {
+      "id": "policy-02-honest-claims",
+      "title": "02 Honest Claims",
+      "path": "policies/02-honest-claims.md",
+      "hash": "sha256:adac90a681012a70f67ef24ff3528dfdfee6dd086b2b699f16ba61ca45962514",
+      "level": "high"
+    },
+    {
+      "id": "policy-01-quality-gates",
+      "title": "01 Quality Gates",
+      "path": "policies/01-quality-gates.md",
+      "hash": "sha256:e3f697cc919b99dca041a22f403a4f69b27fcf197081501c8eb0cc352ec1c41a",
+      "level": "high"
+    }
+  ],
+  "context": {
+    "specs": [],
+    "rules": []
+  },
+  "permissions": {
+    "allowed_agents": [],
+    "allowed_tools": []
+  },
+  "dependencies": [],
+  "revocation": {
+    "revoked": false,
+    "revoked_at": null,
+    "reason": null
+  },
+  "signatures": [
+    {
+      "algorithm": "Ed25519",
+      "key_id": "did:filegit:YKWrpTU18S9uqdtH#keys-1",
+      "signature": "+44eYiz42kwcxLqp3n0QM+V6252YTvPEddwVjJraKVN9r9cIUvmWdY8jaPrNit1Rts098nwaSi65RQz7tuZRBw=="
+    }
+  ]
+}
