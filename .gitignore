@@ -4,3 +4,9 @@ __pycache__/
 .pytest_cache/
 .coverage
 .filegit/
+
+# Frontend del dashboard
+dashboard/node_modules/
+dashboard/.vite/
+
+# dashboard/dist SÍ se versiona: `filegit studio` lo sirve y el CI no lo compila.

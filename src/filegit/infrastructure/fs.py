@@ -1,6 +1,8 @@
 from pathlib import Path
-from filegit.domain.ports import FileSystemPort
+
 from filegit.domain.errors import FileGitError
+from filegit.domain.ports import FileSystemPort
+
 
 class OSFileSystem(FileSystemPort):
     def ensure_dir(self, path: Path) -> None:
