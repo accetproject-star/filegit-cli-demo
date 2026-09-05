@@ -7,10 +7,11 @@ class PyNaClCrypto(CryptoPort):
     def generate_keypair(self) -> tuple[bytes, bytes]:
         signing_key = nacl.signing.SigningKey.generate()
         verify_key = signing_key.verify_key
-        return (
-            signing_key.encode(encoder=nacl.encoding.RawEncoder),
-            verify_key.encode(encoder=nacl.encoding.RawEncoder)
-        )
+        return signing_key.encode(encoder=nacl.encoding.RawEncoder), verify_key.encode(encoder=nacl.encoding.RawEncoder)
+
+    def get_public_key(self, private_key: bytes) -> bytes:
+        signing_key = nacl.signing.SigningKey(private_key, encoder=nacl.encoding.RawEncoder)
+        return signing_key.verify_key.encode(encoder=nacl.encoding.RawEncoder)
 
     def sign(self, private_key: bytes, message: bytes) -> str:
         try:

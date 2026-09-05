@@ -1,5 +1,6 @@
+import json
 from pydantic import BaseModel, Field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 class VerificationMethod(BaseModel):
@@ -72,3 +73,21 @@ class FileGitManifest(BaseModel):
         # But we must ensure keys are sorted for deterministic hashing.
         import json
         return json.dumps(data, sort_keys=True, separators=(',', ':')).encode('utf-8')
+
+class TraceAction(BaseModel):
+    action_type: str
+    description: str
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ExecutionTrace(BaseModel):
+    trace_id: str
+    agent_id: str
+    prompt: str
+    actions: List[TraceAction] = []
+    bundle_id: str
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    signature: Optional[Signature] = None
+
+    def to_signable_bytes(self) -> bytes:
+        dump = self.model_dump(exclude={'signature'}, mode='json')
+        return json.dumps(dump, sort_keys=True).encode('utf-8')

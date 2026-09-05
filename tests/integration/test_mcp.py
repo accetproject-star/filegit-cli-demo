@@ -9,8 +9,8 @@ from typer.testing import CliRunner
 runner = CliRunner()
 
 def test_mcp_handlers():
+    original_cwd = Path.cwd()
     with tempfile.TemporaryDirectory() as d:
-        original_cwd = Path.cwd()
         os.chdir(d)
         
         try:

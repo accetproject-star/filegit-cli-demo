@@ -7,6 +7,11 @@ class CryptoPort(abc.ABC):
     def generate_keypair(self) -> tuple[bytes, bytes]:
         """Generates an Ed25519 keypair. Returns (private_key_bytes, public_key_bytes)."""
         pass  # pragma: no cover
+
+    @abc.abstractmethod
+    def get_public_key(self, private_key: bytes) -> bytes:
+        """Derives public key from private key."""
+        pass  # pragma: no cover
         
     @abc.abstractmethod
     def sign(self, private_key: bytes, message: bytes) -> str:

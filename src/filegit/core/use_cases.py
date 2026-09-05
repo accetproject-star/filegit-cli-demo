@@ -113,7 +113,7 @@ class FileGitUseCases:
         
         return manifest
 
-    def verify(self, repo_path: Path, manifest_path: Path) -> bool:
+    def verify(self, repo_path: Path, manifest_path: Path, require_trace: bool = False) -> bool:
         """Verifies the integrity and signature of a manifest against local files."""
         if not manifest_path.exists():
             raise ManifestError(f"Manifest not found at {manifest_path}")
@@ -148,4 +148,28 @@ class FileGitUseCases:
             if local_hash != policy.hash:
                 raise HashMismatchError(f"Hash mismatch for {policy.path}. Expected {policy.hash}, got {local_hash}")
                 
+        # 3. Verify Execution Traces
+        if require_trace:
+            import json
+            traces_dir = repo_path / ".filegit" / "traces"
+            if not traces_dir.exists() or not any(traces_dir.glob("trace-*.json")):
+                raise ManifestError("Execution trace is required but none was found.")
+                
+            for trace_file in traces_dir.glob("trace-*.json"):
+                try:
+                    trace_data = json.loads(self.fs.read_text(trace_file))
+                    from filegit.domain.models import ExecutionTrace
+                    trace = ExecutionTrace(**trace_data)
+                    
+                    if trace.bundle_id != manifest.id:
+                        raise ManifestError(f"Trace {trace.trace_id} does not match current bundle.")
+                        
+                    if not trace.signature:
+                        raise SignatureError(f"Trace {trace.trace_id} is not signed.")
+                        
+                    if not self.crypto.verify(pub_key_bytes, trace.to_signable_bytes(), trace.signature.signature):
+                        raise SignatureError(f"Trace {trace.trace_id} has an invalid signature.")
+                except Exception as e:
+                    raise ManifestError(f"Invalid trace format in {trace_file.name}: {e}")
+                    
         return True

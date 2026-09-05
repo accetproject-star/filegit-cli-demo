@@ -65,21 +65,87 @@ def pack(
 
 @app.command()
 def verify(
-    repo_path: Path = typer.Option(Path.cwd(), help="Path to the repository."),
-    manifest_path: Optional[Path] = typer.Option(None, help="Path to the manifest.json.")
+    repo_path: Path = typer.Option(Path("."), help="Path to the repository to verify"),
+    require_trace: bool = typer.Option(False, help="Require a valid agent execution trace")
 ):
-    """Verify the integrity and signature of the context bundle."""
-    if not manifest_path:
-        manifest_path = repo_path / ".filegit" / "manifest.json"
-        
+    """Verify the integrity of the FileGit authorized context."""
+    from filegit.core.use_cases import FileGitUseCases
+    from filegit.infrastructure.crypto import PyNaClCrypto
+    from filegit.infrastructure.hasher import SHA256Hasher
+    from filegit.infrastructure.fs import OSFileSystem
+    from filegit.domain.errors import FileGitError, ManifestError, SignatureError, HashMismatchError
+    
+    uc = FileGitUseCases(PyNaClCrypto(), SHA256Hasher(), OSFileSystem())
+    manifest_path = repo_path / ".filegit" / "manifest.json"
+    
     try:
-        uc = get_use_cases()
-        is_valid = uc.verify(repo_path, manifest_path)
+        is_valid = uc.verify(repo_path, manifest_path, require_trace=require_trace)
         if is_valid:
             console.print("[green]✔[/green] [bold]VERIFIED:[/bold] The context bundle is authentic and unmodified.")
-    except FileGitError as e:  # pragma: no cover
+    except (FileGitError, ManifestError, SignatureError, HashMismatchError) as e:  # pragma: no cover
         console.print(f"[red]❌ BLOCK:[/red] Verification failed.")
         console.print(f"  [red]Reason:[/red] {e}")
+        raise typer.Exit(code=1)
+
+@app.command()
+def studio():
+    """Start the FileGit Studio Dashboard (Web UI)."""
+    try:
+        from filegit.cli.studio_server import serve
+        console.print("[green]Starting FileGit Studio on http://127.0.0.1:3000[/green]")
+        serve()
+    except ImportError as e:
+        console.print("[red]Error:[/red] The 'fastapi' and 'uvicorn' dependencies are not installed.")
+        raise typer.Exit(code=1)
+    except KeyboardInterrupt:
+        pass
+
+trace_app = typer.Typer(help="Manage execution traces for AI agents.")
+app.add_typer(trace_app, name="trace")
+
+@trace_app.command("record")
+def trace_record(
+    prompt: str = typer.Option(..., help="The prompt the agent is responding to"),
+    action: str = typer.Option(..., help="The type of action performed"),
+    description: str = typer.Option(..., help="Description of the action"),
+    repo_path: Path = typer.Option(Path("."), help="Path to the repository")
+):
+    """Record a step in the execution trace."""
+    from filegit.core.flight_recorder import FlightRecorder
+    from filegit.core.use_cases import FileGitUseCases
+    from filegit.infrastructure.crypto import PyNaClCrypto
+    from filegit.infrastructure.hasher import SHA256Hasher
+    from filegit.infrastructure.fs import OSFileSystem
+    
+    uc = FileGitUseCases(PyNaClCrypto(), SHA256Hasher(), OSFileSystem())
+    recorder = FlightRecorder(uc)
+    try:
+        recorder.record_action(repo_path, prompt, action, description)
+        console.print("[green]✔ Action recorded.[/green]")
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(code=1)
+
+@trace_app.command("seal")
+def trace_seal(
+    agent_id: str = typer.Option("unknown-agent", help="Identifier of the AI agent"),
+    bundle_id: str = typer.Option(..., help="The ID of the FileGit bundle this trace complies with"),
+    repo_path: Path = typer.Option(Path("."), help="Path to the repository")
+):
+    """Seal the current trace and sign it."""
+    from filegit.core.flight_recorder import FlightRecorder
+    from filegit.core.use_cases import FileGitUseCases
+    from filegit.infrastructure.crypto import PyNaClCrypto
+    from filegit.infrastructure.hasher import SHA256Hasher
+    from filegit.infrastructure.fs import OSFileSystem
+    
+    uc = FileGitUseCases(PyNaClCrypto(), SHA256Hasher(), OSFileSystem())
+    recorder = FlightRecorder(uc)
+    try:
+        trace = recorder.seal_trace(repo_path, agent_id, bundle_id)
+        console.print(f"[green]✔ Trace sealed and signed: {trace.trace_id}[/green]")
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
         raise typer.Exit(code=1)
 
 @app.command()
