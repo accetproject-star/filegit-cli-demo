@@ -3,7 +3,14 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .coverage
-.filegit/
+# El manifiesto firmado y las trazas SÍ se versionan: el gate los verifica en CI
+# con la clave pública, que viaja dentro del propio manifiesto. Lo único que no
+# puede entrar aquí es la clave privada.
+.filegit/keys/
+*.pem
+
+# test-repo/ es un banco de pruebas manual: su estado no se versiona.
+test-repo/.filegit/
 
 # Frontend del dashboard
 dashboard/node_modules/

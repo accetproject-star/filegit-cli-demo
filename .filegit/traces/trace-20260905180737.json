@@ -1,0 +1,39 @@
+{
+  "trace_id": "trace-20260905180737",
+  "agent_id": "unknown-agent",
+  "prompt": "Oscar pidió dogfooding: que la Action de FileGit corra sobre el propio FileGit",
+  "actions": [
+    {
+      "action_type": "edit_file",
+      "description": ".gitignore: dejar de ignorar el manifiesto, seguir ignorando las claves",
+      "timestamp": "2026-09-05T18:07:35.505026Z"
+    },
+    {
+      "action_type": "create_file",
+      "description": "policies/01-quality-gates.md: los tres gates con umbral de cobertura al 90%",
+      "timestamp": "2026-09-05T18:07:35.892818Z"
+    },
+    {
+      "action_type": "create_file",
+      "description": "policies/02-honest-claims.md: la regla nacida del claim falso del README",
+      "timestamp": "2026-09-05T18:07:36.220539Z"
+    },
+    {
+      "action_type": "create_file",
+      "description": "policies/03-agent-traces.md: el agente sella una traza antes de abrir el PR",
+      "timestamp": "2026-09-05T18:07:36.546896Z"
+    },
+    {
+      "action_type": "run_command",
+      "description": "filegit pack: firma las tres políticas con Ed25519",
+      "timestamp": "2026-09-05T18:07:36.873074Z"
+    }
+  ],
+  "bundle_id": "filegit-bundle-20260905180710",
+  "timestamp": "2026-09-05T18:07:37.234644Z",
+  "signature": {
+    "algorithm": "Ed25519",
+    "key_id": "did:filegit:YKWrpTU18S9uqdtH#keys-1",
+    "signature": "/QOZnt2G3ynJeIUDjgfzTgsExjBZWLSHfOfqY30q0rx5sy5ebB5GLG/UY/8XqFNRwmqAjl3CiVH8TgqQRYo/Cw=="
+  }
+}
