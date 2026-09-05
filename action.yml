@@ -9,6 +9,14 @@ inputs:
     description: 'Path to the repository to verify'
     required: false
     default: '.'
+  require-trace:
+    description: >
+      Require a valid, signed agent execution trace matching the active bundle.
+      This is the Phase 3 success criterion: a PR authored by an agent that did
+      not attach its black box does not merge. Set to 'false' only for gradual
+      adoption on a repository that has not started recording traces yet.
+    required: false
+    default: 'true'
 
 runs:
   using: "composite"
@@ -22,8 +30,8 @@ runs:
       shell: bash
       run: |
         python -m pip install --upgrade pip
-        # Install the CLI from the current repository path (in production, this would be a pip install filegit-cli)
-        # Assuming the action is used in a repo where FileGit is already installed or it installs from source:
+        # Installed from the action's own checkout. In production this becomes
+        # `pip install filegit-cli` once the package is published to PyPI.
         pip install ${{ github.action_path }}
 
     - name: Verify Context Bundle
@@ -31,16 +39,32 @@ runs:
       shell: bash
       run: |
         echo "Running FileGit Verification..."
-        filegit verify --repo-path ${{ inputs.repo-path }}
-        
-        # If the command exits with 0, we are good.
+
+        # `filegit verify` exits non-zero on failure, which fails this step and
+        # therefore the job. Note that failing the job is NOT the same as
+        # blocking a merge: a required status check is granted in the branch
+        # protection settings, not declared here.
+        if [ "${{ inputs.require-trace }}" = "true" ]; then
+          echo "Trace enforcement: ON — a PR without a signed trace will fail."
+          filegit verify --repo-path "${{ inputs.repo-path }}" --require-trace
+        else
+          echo "Trace enforcement: OFF — verifying the bundle only."
+          filegit verify --repo-path "${{ inputs.repo-path }}" --no-require-trace
+        fi
+
         echo "verification=success" >> $GITHUB_OUTPUT
-        echo "evidence_path=${{ inputs.repo-path }}/.filegit/manifest.json" >> $GITHUB_OUTPUT
+        echo "evidence_path=${{ inputs.repo-path }}/.filegit" >> $GITHUB_OUTPUT
 
     - name: Upload Evidence
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: filegit-evidence
-        path: ${{ inputs.repo-path }}/.filegit/manifest.json
+        # The manifest alone is not the evidence: without the traces there is
+        # no record of how the agent reasoned, which is what the trace exists
+        # to preserve.
+        path: |
+          ${{ inputs.repo-path }}/.filegit/manifest.json
+          ${{ inputs.repo-path }}/.filegit/traces/
+        if-no-files-found: warn
         retention-days: 90

@@ -100,11 +100,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install FileGit
-        run: pip install filegit-cli
-      - name: Verify Context & Traces
-        run: filegit verify --require-trace
+      - uses: accetproject-star/filegit-cli-demo@main
+        # require-trace defaults to true: a PR whose agent did not attach a
+        # signed execution trace fails this step.
+        with:
+          require-trace: 'true'
 ```
+
+> **Failing the check is not the same as blocking the merge.** A required
+> status check is *granted* in the repository's branch protection settings,
+> not declared in the workflow. Until someone with admin rights marks this
+> check as required, the job goes red and the merge button stays available.
 
 ---
 
