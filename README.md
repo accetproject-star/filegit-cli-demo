@@ -153,9 +153,22 @@ Both of these are real pull requests in this repository:
   same rules to administrators. That part is configured but not demonstrated here — proving
   it would require merging a knowingly broken commit into `main`.
 
-Before branch protection was granted, a pull request with all three checks red still
-reported `mergeStateStatus: CLEAN` and could be merged. The workflow file did not change.
-**The permission did.**
+And the pair that shows what the permission actually buys — the **same change, byte for
+byte**, submitted twice:
+
+| | [#5](https://github.com/accetproject-star/filegit-cli-demo/pull/5) | [#6](https://github.com/accetproject-star/filegit-cli-demo/pull/6) |
+|---|---|---|
+| The change | a policy edited without re-signing | *identical* |
+| FileGit Gatekeeper | ❌ FAILURE | ❌ FAILURE |
+| `build-and-test` ×3 | ✅ SUCCESS | ✅ SUCCESS |
+| Merge state | `UNSTABLE` — **mergeable** | **`BLOCKED`** |
+
+In #5 the Gatekeeper was running but was not a required check. **The only check that caught
+the violation was the only one that could not stop it**; the three that could stop it had
+nothing to object to, because the code was fine — what changed was a signed markdown file.
+
+Between #5 and #6, not one line of code or workflow changed. A check was named as required.
+**Having the check is not having the gate.**
 
 #### The limit, stated plainly
 
